@@ -1,0 +1,57 @@
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[cfg_attr(feature = "serde-integration", derive(Serialize, Deserialize))]
+/// An enumeration of all ISO-3166-2 subdivision codes
+pub enum Code \{
+{{ - for s in subdivisions }}
+    /// {s.name}
+    {s.code_identifier},
+{{ - endfor }}
+}
+
+{{ - for s in subdivisions }}
+
+/// {s.name}
+const {s.code_identifier}: Subdivision = Subdivision \{
+    code: Code::{s.code_identifier},
+};
+{{ - endfor }}
+
+// -----------------------------------------------------------------------------
+
+impl From<Code> for Subdivision \{
+    fn from(code: Code) -> Self \{
+        match code \{
+        {{ - for s in subdivisions }}
+            Code::{s.code_identifier} => {s.code_identifier},
+        {{ - endfor }}
+        }
+    }
+}
+
+impl Display for Code \{
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> \{
+        let formatted_code = match *self \{
+            {{ - for s in subdivisions }}
+            Code::{s.code_identifier} => "{s.code}",
+            {{ - endfor }}
+        };
+
+        f.write_str(&formatted_code)
+    }
+}
+
+impl FromStr for Code \{
+    type Err = SubdivisionCodeParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> \{
+        let code = match s \{
+            {{ - for s in subdivisions }}
+            "{s.code}" => Self::{s.code_identifier},
+            {{ - endfor }}
+            _ => \{return Err(SubdivisionCodeParseError::InvalidCode)},
+        };
+
+        Ok(code)
+    }
+}
+
